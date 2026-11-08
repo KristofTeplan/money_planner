@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Money Plan</title>
+<meta name="description" content="Your monthly money plan and spending log. Data stays on this phone.">
+<meta name="theme-color" content="#f3f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1311" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="appbar">
+  <h1 id="title">This month</h1>
+  <button type="button" id="disp-toggle" class="chip-btn" aria-label="Switch display currency">EUR</button>
+</header>
+
+<main>
+  <!-- ============ MONTH ============ -->
+  <section id="screen-month" class="screen" aria-label="This month">
+    <div class="card welcome" id="m-welcome" hidden>
+      <h2>Welcome to Money Plan</h2>
+      <p>Everything you enter stays on this phone. Restore your plan from a backup file (for example from Google Drive), or set up your plan from scratch.</p>
+      <div class="actions">
+        <button type="button" class="btn" id="w-restore">Restore from backup</button>
+        <a class="btn ghost" href="#plan">Set up my plan</a>
+      </div>
+    </div>
+    <div class="banner warn" id="m-backup-nag" hidden>
+      <p id="m-backup-nag-text"></p>
+      <a class="btn ghost" href="#more">Back up</a>
+    </div>
+
+    <div class="month-nav">
+      <button type="button" id="m-prev" class="icon-btn" aria-label="Previous month">‹</button>
+      <span id="m-label"></span>
+      <button type="button" id="m-next" class="icon-btn" aria-label="Next month">›</button>
+    </div>
+
+    <div class="card hero" id="m-hero">
+      <span class="label" id="m-left-label">Left this month</span>
+      <span class="big num" id="m-left">–</span>
+      <div class="meter" aria-hidden="true"><i id="m-meter" style="width:0"></i><b id="m-mark" hidden></b></div>
+      <span class="sub num" id="m-sub"></span>
+    </div>
+
+    <div class="duo">
+      <div class="card mini"><span class="label">Necessities</span><span class="v num" id="m-need">–</span><span class="sub num" id="m-need-sub"></span></div>
+      <div class="card mini"><span class="label">Optional</span><span class="v num" id="m-opt">–</span><span class="sub num" id="m-opt-sub"></span></div>
+    </div>
+
+    <h2 class="sec">By category</h2>
+    <div class="card list" id="m-cats"></div>
+
+    <h2 class="sec">Spending</h2>
+    <div id="m-entries"></div>
+  </section>
+
+  <!-- ============ PLAN ============ -->
+  <section id="screen-plan" class="screen" aria-label="Plan" hidden>
+    <div class="plan-controls">
+      <div class="seg" role="group" aria-label="Summary view">
+        <button type="button" id="mode-all" aria-pressed="true">Everything</button>
+        <button type="button" id="mode-free" aria-pressed="false">After necessities</button>
+      </div>
+      <div class="seg" role="group" aria-label="Show totals">
+        <button type="button" id="view-month" aria-pressed="true">Month</button>
+        <button type="button" id="view-year" aria-pressed="false">Year</button>
+      </div>
+    </div>
+
+    <div class="card summary">
+      <div class="kpis">
+        <div class="kpi hero2" id="k1">
+          <span class="label" id="k1-l"></span>
+          <span class="v num" id="k1-v">–</span>
+          <span class="hour num" id="k1-h"></span>
+          <span id="k1-pill"></span>
+        </div>
+        <div class="kpi"><span class="label" id="k2-l"></span><span class="v num" id="k2-v">–</span><span class="sub" id="k2-s"></span></div>
+        <div class="kpi"><span class="label" id="k3-l"></span><span class="v num" id="k3-v">–</span><span class="sub" id="k3-s"></span></div>
+        <div class="kpi"><span class="label" id="k4-l"></span><span class="v num" id="k4-v">–</span><span class="sub" id="k4-s"></span></div>
+      </div>
+      <div class="alloc">
+        <span class="label" id="alloc-l">Where your income goes</span>
+        <div class="bar" id="alloc-bar" role="img" aria-label="Income split by category"></div>
+        <div class="scale num"><span>0</span><span id="scale-max"></span></div>
+      </div>
+      <div class="cats" id="cats"></div>
+    </div>
+
+    <div class="sec-head"><h2>Income</h2><span class="total" id="inc-total"></span></div>
+    <div class="table" id="inc-table"></div>
+    <button type="button" class="btn ghost add" id="add-inc">Add income</button>
+
+    <div class="sec-head"><h2>Planned expenses</h2><span class="total" id="exp-total"></span></div>
+    <p class="sub" style="margin:0">Enter each in the currency you pay it in, and mark it as a need or optional.</p>
+    <div class="table" id="exp-table"></div>
+    <button type="button" class="btn ghost add" id="add-exp">Add expense</button>
+    <datalist id="cat-list"></datalist>
+
+    <div class="sec-head"><h2>Savings goal</h2></div>
+    <div class="card goal">
+      <div class="goal-fields">
+        <label class="field"><span class="label">Goal</span><input id="goal-name" type="text"></label>
+        <label class="field"><span class="label">Target</span><input id="goal-target" type="number" inputmode="decimal" min="0" step="any" class="num" placeholder="0"></label>
+        <label class="field"><span class="label">Already saved</span><input id="goal-saved" type="number" inputmode="decimal" min="0" step="any" class="num" placeholder="0"></label>
+        <label class="field"><span class="label">Currency</span><select id="goal-cur"><option value="EUR">EUR</option><option value="CZK">CZK</option></select></label>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="goal-bar" style="width:0"></i></div>
+      <div class="goal-out" id="goal-out"></div>
+    </div>
+  </section>
+
+  <!-- ============ MORE ============ -->
+  <section id="screen-more" class="screen" aria-label="More" hidden>
+    <div class="card form" id="install-card" hidden>
+      <p><strong>Install Money Plan</strong> so it opens from your home screen like any other app.</p>
+      <button type="button" class="btn" id="btn-install">Install app</button>
+    </div>
+
+    <h2 class="sec">Settings</h2>
+    <div class="card form">
+      <div class="setting"><span>Show amounts in</span>
+        <div class="seg" role="group" aria-label="Show amounts in" id="set-display"><button type="button" data-v="EUR">EUR</button><button type="button" data-v="CZK">CZK</button></div>
+      </div>
+      <div class="setting"><span>New spending in</span>
+        <div class="seg" role="group" aria-label="Default currency for new spending" id="set-entrycur"><button type="button" data-v="CZK">CZK</button><button type="button" data-v="EUR">EUR</button></div>
+      </div>
+      <label class="setting"><span>Exchange rate: 1 € in Kč</span><input id="set-rate" type="number" inputmode="decimal" step="0.01" min="0"></label>
+      <label class="setting"><span>Hours worked a month</span><input id="set-hours" type="number" inputmode="numeric" step="1" min="1"></label>
+    </div>
+
+    <h2 class="sec">Backup</h2>
+    <div class="card form">
+      <p id="backup-info"></p>
+      <button type="button" class="btn" id="btn-backup">Back up to Google Drive</button>
+      <button type="button" class="btn ghost" id="btn-download">Save backup file to phone</button>
+      <label class="btn ghost file-btn">Restore from backup<input type="file" id="file-restore" accept=".json,.txt,application/json,text/plain"></label>
+      <div class="banner warn" id="restore-confirm" hidden>
+        <p id="restore-text"></p>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn ghost" id="restore-cancel">Cancel</button>
+          <button type="button" class="btn" id="restore-go">Restore</button>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec">Data</h2>
+    <div class="card form">
+      <p>Your plan and spending are stored only on this phone. Back up regularly so you don't lose them.</p>
+      <button type="button" class="btn danger" id="btn-wipe">Delete all data</button>
+    </div>
+    <p class="foot">Money Plan · version 1.0 · A year counts as 365 days or 52 weeks.</p>
+  </section>
+</main>
+
+<button type="button" class="fab" id="fab" aria-label="Add spending">+</button>
+
+<nav class="tabs" aria-label="Main">
+  <a href="#month" data-tab="month">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Month
+  </a>
+  <a href="#plan" data-tab="plan">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>Plan
+  </a>
+  <a href="#more" data-tab="more">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 12h.01M12 12h.01M19 12h.01"/></svg>More
+  </a>
+</nav>
+
+<!-- ============ ADD / EDIT SHEET ============ -->
+<div class="backdrop" id="backdrop" hidden></div>
+<form class="sheet" id="sheet" hidden aria-labelledby="sheet-title" novalidate>
+  <div class="sheet-head">
+    <h2 id="sheet-title">Add spending</h2>
+    <button type="button" class="icon-btn" id="sheet-close" aria-label="Close">×</button>
+  </div>
+  <div class="amount-row">
+    <input id="f-amount" type="number" inputmode="decimal" step="any" min="0" placeholder="0" aria-label="Amount">
+    <div class="seg" role="group" aria-label="Currency" id="f-cur">
+      <button type="button" data-v="CZK">Kč</button><button type="button" data-v="EUR">€</button>
+    </div>
+  </div>
+  <div class="worktime" id="f-work"></div>
+  <span class="label">Category</span>
+  <div class="chips" id="f-cats" role="radiogroup" aria-label="Category"></div>
+  <input id="f-newcat" class="field" type="text" placeholder="New category name" aria-label="New category name" hidden style="border:1px solid var(--line);background:var(--field);border-radius:9px;padding:10px 11px">
+  <label class="field"><span class="label">Note (optional)</span><input id="f-note" type="text" placeholder="e.g. Lidl, vet, cinema" maxlength="120"></label>
+  <div class="row2">
+    <label class="field"><span class="label">Date</span><input id="f-date" type="date"></label>
+    <div class="field"><span class="label">Type</span><button type="button" id="f-need" class="need-btn" aria-pressed="true">Need</button></div>
+  </div>
+  <details id="f-bills">
+    <summary>Paying a bill from your plan?</summary>
+    <div class="chips" id="f-billchips"></div>
+  </details>
+  <div class="sheet-actions">
+    <button type="button" class="btn danger" id="f-delete" hidden>Delete</button>
+    <button type="submit" class="btn">Save</button>
+  </div>
+</form>
+
+<div class="toast" id="toast" role="status" hidden><span id="toast-text"></span><button type="button" id="toast-action" hidden></button></div>
+
+<script src="app.js"></script>
+</body>
+</html>
